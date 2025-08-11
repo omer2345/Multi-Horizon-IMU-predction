@@ -74,12 +74,6 @@ git clone https://github.com/<your-username>/multi-horizon-imu-prediction.git
 cd multi-horizon-imu-prediction
 pip install -r requirements.txt
 
-## 🛠 Installation
-
-### 1. Prepare Data
-Place your IMU CSV files in the `data/` directory.  
-Files should contain **timestamp, accelerometer, and gyroscope** readings.
-
 ### 2. Train Multi-Horizon Model
 ```bash
 jupyter notebook notebooks/train_multi.ipynb
