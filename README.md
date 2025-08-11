@@ -93,7 +93,3 @@ This project uses **real IMU sensor data** and compares different prediction str
 This project is licensed under the **MIT License**.
 
 ---
-
-## 🙌 Acknowledgements
-Inspired by research on **VR motion prediction** and **multi-step time series forecasting**.  
-Built with **PyTorch**.
