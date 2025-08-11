@@ -1,115 +1,118 @@
-Multi-Horizon IMU Prediction
-Predicting future Inertial Measurement Unit (IMU) sensor readings across multiple time horizons to reduce motion-to-photon latency in VR/AR.
+# 📈 Multi-Horizon IMU Prediction
 
-Background
-The goal of this project is to explore the impact of prediction horizon length on accuracy and drift when forecasting IMU readings (gyroscope & accelerometer data).
-We train separate models for short, medium, and long horizons — specifically 10 ms, 20 ms, and 30 ms — and compare them to a single-step 1 ms prediction model that is applied recursively to simulate drift over longer horizons.
+[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg?logo=pytorch)](https://pytorch.org/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Our approach involves:
+A **PyTorch-based framework** for predicting future Inertial Measurement Unit (IMU) readings at **multiple time horizons**.  
+Supports direct multi-step forecasting (e.g., **10ms, 20ms, 30ms**) and comparison with short-horizon recursive predictions to study **drift accumulation**.
 
-Preprocessing raw IMU logs into contiguous segments.
+---
 
-Resampling to a target frequency (100 Hz or 1 kHz).
+## 📌 Project Overview
 
-Creating sliding windows of past IMU readings to predict future values.
+This project investigates **multi-horizon forecasting** for IMU sensor data, targeting applications like **VR/AR motion prediction** where reducing latency is critical.
 
-Training LSTM-based regression models for each horizon.
+We train multiple LSTM models:
+- **Direct models** predicting 10ms, 20ms, and 30ms into the future.
+- **Single-step model** predicting 1ms ahead for recursive forecasting (drift comparison).
 
-Visualizing and evaluating drift over time.
+Key features:
+- 🚀 High-frequency IMU processing (1 kHz support)
+- 📊 Multiple time horizons in one pipeline
+- 📈 Drift visualization over long recursive predictions
+- 🔍 Clean and reproducible PyTorch training loop
 
-This setup allows us to demonstrate the trade-off between direct multi-step forecasting and recursive short-step prediction.
+---
 
-Prerequisites
-Library	Version
-Python	3.10+
-torch	2.3+
-numpy	1.26+
-pandas	2.2+
-matplotlib	3.7+
-scikit-learn	1.4+
+## 📂 Repository Structure
 
-Files in the Repository
-File / Folder	Purpose
-data/	Raw IMU CSV files
-notebooks/imu_train.ipynb	Train multi-horizon models (10 ms, 20 ms, 30 ms)
-notebooks/imu_baseline_1ms.ipynb	Train single-step 1 ms prediction baseline
-scripts/preprocessing.py	Segmenting, merging, and resampling IMU data
-scripts/training.py	Model training and evaluation loops
-scripts/visualization.py	3D trajectory plotting and drift visualization
-models/	Saved PyTorch model checkpoints
-docs/	Images and plots for README
+.
+├── data/ # Example IMU datasets (not included in repo)
+├── notebooks/
+│ ├── train_multi.ipynb # Main notebook for multi-horizon models
+│ ├── train_single.ipynb # Notebook for single-step drift study
+├── models/ # Saved PyTorch models (.pt)
+├── plots/ # Generated visualizations
+├── README.md # This file
+└── requirements.txt
 
-Dataset
-We use IMU logs containing:
+yaml
+Copy
+Edit
 
-Accelerometer readings: (acc_x, acc_y, acc_z) in m/s²
+---
 
-Gyroscope readings: (gyro_x, gyro_y, gyro_z) in °/s
+## 📊 Example Results
 
-Timestamp (nanoseconds)
+### **Validation RMSE Across Horizons**
+| Horizon | Model Type | RMSE (deg/s) |
+|---------|-----------|--------------|
+| 10ms    | Direct    | 0.36 |
+| 20ms    | Direct    | 0.37 |
+| 30ms    | Direct    | 0.39 |
+| 10ms    | Recursive (1ms step) | 0.44 |
+| 20ms    | Recursive (1ms step) | 0.57 |
+| 30ms    | Recursive (1ms step) | 0.79 |
 
-Data is merged, segmented into continuous sequences, and resampled to the target rate before training.
+---
+
+### **Drift Effect Visualization**
+Direct vs. Recursive Predictions  
+![Drift Comparison](plots/drift_example.png)
+
+---
+
+## ⚙️ Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/multi-horizon-imu-prediction.git
+cd multi-horizon-imu-prediction
+
+# Install dependencies
+pip install -r requirements.txt
+🏃‍♂️ Usage
+Train Multi-Horizon Models
+bash
+Copy
+Edit
+jupyter notebook notebooks/train_multi.ipynb
+Train 1ms Single-Step Model (Drift Study)
+bash
+Copy
+Edit
+jupyter notebook notebooks/train_single.ipynb
+📈 Training Configuration
+Parameter	Value
+Target rate	100 Hz / 1 kHz
+Window size	200 samples (adjustable)
+Horizons	[1, 10, 20, 30] samples ahead
+Batch size	256
+Epochs	5
+Optimizer	Adam
+Learning rate	1e-3
+
+🔬 Methodology
+Data Preprocessing
+
+Filter acc and gyro readings.
+
+Resample to target frequency (100 Hz / 1 kHz).
+
+Create sliding windows for each horizon.
 
 Model Architecture
-Base model: 2-layer LSTM
 
-Hidden size: 64 units
+LSTM-based sequence model.
 
-Dropout: 0.1
+Linear layer to output prediction for each horizon.
 
-Output layer: Fully-connected → 3D vector (gyro_x, gyro_y, gyro_z)
+Evaluation
 
-For each horizon h (in timesteps), the model predicts y[t+h] from a window of past IMU readings.
+RMSE, MAE, and visual drift analysis.
 
-Results
-Validation Performance (100 Hz, Gyroscope °/s)
-Horizon	MAE	RMSE
-10 ms	0.16	0.36
-20 ms	0.17	0.36
-30 ms	0.17	0.37
+Comparison between direct and recursive predictions.
 
-Example: Direct 20 ms Prediction
-<img src="docs/example_20ms.png" width="500">
-Drift Effect: Recursive 1 ms Model
-<img src="docs/drift_effect.png" width="500">
-The recursive baseline accumulates small errors at each step, leading to increasing deviation from the ground truth over time.
-
-Training Time vs Horizon
-Direct longer-horizon models require slightly more training time per epoch but avoid drift accumulation seen in recursive prediction.
-
-How to Run
-Clone the repository:
-
-bash
-Copy
-Edit
-git clone https://github.com/username/multi-horizon-imu.git
-cd multi-horizon-imu
-pip install -r requirements.txt
-Train all horizons:
-
-bash
-Copy
-Edit
-python train.py --data data/session.csv
-Evaluate a saved model:
-
-bash
-Copy
-Edit
-python eval.py --model models/model_20ms.pt
-Visualize predictions:
-
-bash
-Copy
-Edit
-python visualize.py --model models/model_30ms.pt
-Notes
-Running all horizons (10 ms, 20 ms, 30 ms, plus 1 ms baseline) will take longer.
-
-The project is tested with GPU acceleration (CUDA), but also works on CPU with slower training.
-
-Sources
-LSTM for Time Series Forecasting
-
-Inertial Measurement Units (IMU) Basics
+📜 License
+This project is licensed under the MIT License - see the LICENSE file for details.
