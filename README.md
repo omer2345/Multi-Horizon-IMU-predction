@@ -41,7 +41,7 @@ Useful for demonstrating **prediction drift** compared to direct prediction.
 ## 🖼 Example Visualization
 
 <p align="center">
-  <img src="docs/vrDemoPicture.png" alt="IMU multi-horizon prediction demo" width="700">
+  <img src="docs/vrDemoPicture.png" alt="IMU multi-horizon prediction demo" width="300">
   <br/>
   <sub>Orange: Model prediction trajectory. White: Ground truth trajectory.</sub>
 </p>
