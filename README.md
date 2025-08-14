@@ -1,95 +1,140 @@
-# 🎯 Multi-Horizon IMU Prediction
+# Multi-Horizon IMU Prediction
 
-This project explores **deep learning** methods for predicting head movement from IMU data, targeting VR/AR latency reduction.  
-We compare **direct multi-horizon prediction** (10 ms, 20 ms, 30 ms ahead) with **single-step recursive prediction** to demonstrate **prediction drift**.
-
----
-
-## 📂 Repository Structure
-
-```
-├── data/               # Raw or preprocessed IMU datasets
-├── notebooks/          # Jupyter notebooks for experiments
-│   ├── train_multi.ipynb    # Multi-horizon model training
-│   ├── train_single.ipynb   # Single-horizon baseline model training
-│   └── evaluate.ipynb       # Comparison & drift analysis
-├── models/             # Saved model checkpoints
-├── docs/               # Documentation & images
-│   └── vrDemoPicture.png    # Demo image used in README
-├── requirements.txt    # Python dependencies
-└── README.md           # This file
-```
+This project predicts future Inertial Measurement Unit (IMU) readings at several short horizons in one forward pass (multi-horizon) and compares them against a direct, short-step recursive baseline. The aim is to reduce VR/AR latency by anticipating motion a few samples ahead. The repository contains end-to-end training, evaluation, and comparison pipelines with interchangeable model backbones such as CNN, LSTM, GRU, and optionally TCN.
 
 ---
-
-## 📊 Example Output
-
-### Direct Multi-Horizon Prediction
-Predicts 10 ms, 20 ms, 30 ms ahead in a single forward pass.
-
-```
-Epoch 01 | Train Loss: 0.8951 | Val Loss: 55.0931 (norm MSE) | Val MAE: 0.17 | RMSE: 0.37 deg/s
-Epoch 02 | Train Loss: 0.6053 | Val Loss: 51.8341 (norm MSE) | Val MAE: 0.16 | RMSE: 0.36 deg/s
-```
-
-### Single-Step Recursive Prediction
-Predicts **1 ms ahead**, repeatedly feeding predictions back into the model to simulate longer horizons.  
-Useful for demonstrating **prediction drift** compared to direct prediction.
-
----
-
-## 🖼 Example Visualization
-
 <p align="center">
   <img src="docs/VrImageGif.gif" alt="IMU multi-horizon prediction demo" width="300">
   <br/>
-  <sub>Orange: Model prediction trajectory. White: Ground truth trajectory.</sub>
 </p>
+
+## Repository structure
+
+```
+.
+├── MultiHorizonPrediction.ipynb     # End-to-end multi-horizon training & evaluation
+├── model_comparison.ipynb           # Compare models & horizons; plots & timing
+│
+├── models_python/
+│   ├── cnn_model.py                  # 1D CNN model definition
+│   ├── gru_model.py                  # GRU model definition
+│   ├── lstm_large.py                 # Large LSTM model definition
+│   ├── lstm_small.py                 # Small LSTM model definition
+│   ├── train_utils.py                # Training loop and utility functions
+│   └── __init__.py
+│
+├── utils/
+│   ├── data_handler.py               # Load, preprocess, segment, and normalize data
+│   ├── visualization.py              # Plotting functions (predictions, segments, metrics)
+│   ├── metrics.py                     # Error metrics: MSE, MAE, RMSE, etc.
+│   ├── timing.py                      # Inference latency measurement helpers
+│   └── __init__.py
+│
+├── docs/                             # Figures / documentation assets
+│   └── (optional images, diagrams)
+└── requirements.txt                  # Python package dependencies
+```
 
 ---
 
-## 🛠 Installation
+## Data format
+
+The code supports CSV files containing IMU sensor readings. Two formats are common:
+
+**A. Split by tag** (recommended)
+- Columns: `timestamp, tag, x, y, z`
+- `tag` is either `acc` or `gyro`.
+
+**B. Plain 6-axis**
+- Columns: `timestamp, ax, ay, az, gx, gy, gz`
+
+**Notes:**
+- Timestamps must be monotonic per stream.
+- Sampling rate defines the real-time meaning of one step ahead. Example: ~52 Hz → 1 step ≈ 19.2 ms, so horizons `[1,2,3]` ≈ `[~20, ~40, ~60] ms`.
+
+---
+
+## Installation
 
 ```bash
-git clone https://github.com/<your-username>/multi-horizon-imu-prediction.git
-cd multi-horizon-imu-prediction
+# Python 3.10+ recommended
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121  # or CPU version
+pip install numpy pandas matplotlib scikit-learn tqdm ipywidgets tabulate
+```
+
+Or, if present:
+```bash
 pip install -r requirements.txt
 ```
 
 ---
 
-## ▶️ Usage
+## Quickstart
 
-### 1. Prepare Data
-Place your IMU CSV files in the `data/` directory.  
-Files should contain timestamp, accelerometer, and gyroscope readings.
+1. **Prepare your dataset**: Place your CSV files in a folder, e.g., `./data/`.
 
-### 2. Train Multi-Horizon Model
-```bash
-jupyter notebook notebooks/train_multi.ipynb
-```
+2. **Run `MultiHorizonPrediction.ipynb`**:
+   - Configure:
+     - `DATA_PATH`: path to your CSV or folder glob
+     - `WINDOW_SIZE`: input history length in steps
+     - `HORIZONS`: list of future steps to predict (e.g., `[1,2,3]`)
+     - Training hyperparameters: batch size, epochs, learning rate
+   - The notebook will:
+     - Load and segment data
+     - Normalize features
+     - Train a multi-output model
+     - Evaluate metrics per horizon
+     - Visualize predictions
 
-### 3. Train Single-Horizon Model
-```bash
-jupyter notebook notebooks/train_single.ipynb
-```
-
-### 4. Evaluate & Compare Drift
-```bash
-jupyter notebook notebooks/evaluate.ipynb
-```
-
----
-
-## 📚 Background
-
-Modern VR/AR headsets suffer from **motion-to-photon latency** — the delay between head movement and the visual update.  
-By **predicting head movement before it happens**, we can render the **future viewpoint** and reduce perceived latency.  
-This project uses **real IMU sensor data** and compares different prediction strategies.
+3. **Compare models**:
+   - Use `model_comparison.ipynb` to:
+     - Evaluate CNN, LSTM, GRU (and optionally TCN)
+     - Compare per-horizon MSE/MAE
+     - Measure single-sample inference latency
 
 ---
 
-## 📄 License
-This project is licensed under the **MIT License**.
+## Configuration tips
+
+- Match `HORIZONS` to your sampling rate (steps → milliseconds).
+- Ensure segments are long enough for the chosen `WINDOW_SIZE`.
+- Normalize on training data only to avoid leakage.
+- Save normalization parameters alongside model checkpoints.
 
 ---
+
+## Models
+
+Available in `models_python/`:
+
+- **CNN** (`cnn_model.py`): Fast, low-latency, good for short horizons.
+- **GRU** (`gru_model.py`): Efficient recurrent baseline.
+- **LSTM Small** (`lstm_small.py`): Lightweight temporal modeling.
+- **LSTM Large** (`lstm_large.py`): Higher capacity version.
+
+> You can add new architectures (e.g., `tcn_model.py`) for further comparison.
+
+---
+
+## Evaluation
+
+The notebooks provide:
+
+- **Error metrics**: MSE, MAE, RMSE per horizon
+- **Comparison plots**: Per-model, per-horizon performance
+- **Best/Worst segments**: Identify scenarios where models excel or fail
+- **Latency benchmarks**: p50/p90 inference times (batch=1)
+
+---
+
+## Extending the project
+
+- Add uncertainty estimation with quantile (pinball) loss.
+- Fuse accelerometer + gyroscope channels in a single model.
+- Test on different devices to evaluate real-world VR performance.
+
+---
+
+## License
+
+Add a license file (e.g., MIT) if you intend others to use or modify this code.
