@@ -42,15 +42,15 @@ This project predicts future Inertial Measurement Unit (IMU) readings at several
 The code supports CSV files containing IMU sensor readings. Two formats are common:
 
 **A. Split by tag** (recommended)
-- Columns: `timestamp, tag, x, y, z`
-- `tag` is either `acc` or `gyro`.
+- Columns: 'timestamp, tag, x, y, z'
+- 'tag' is either 'acc' or 'gyro'.
 
 **B. Plain 6-axis**
-- Columns: `timestamp, ax, ay, az, gx, gy, gz`
+- Columns: 'timestamp, ax, ay, az, gx, gy, gz'
 
 **Notes:**
 - Timestamps must be monotonic per stream.
-- Sampling rate defines the real-time meaning of one step ahead. Example: ~52 Hz → 1 step ≈ 19.2 ms, so horizons `[1,2,3]` ≈ `[~20, ~40, ~60] ms`.
+- Sampling rate defines the real-time meaning of one step ahead. Example: ~52 Hz → 1 step ≈ 19.2 ms, so horizons '[1,2,3]' ≈ '[~20, ~40, ~60] ms'.
 
 ---
 
@@ -71,13 +71,13 @@ pip install -r requirements.txt
 
 ## Quickstart
 
-1. **Prepare your dataset**: Place your CSV files in a folder, e.g., `./data/`.
+1. **Prepare your dataset**: Place your CSV files in a folder, e.g., './data/'.
 
 2. **Run `MultiHorizonPrediction.ipynb`**:
    - Configure:
-     - `DATA_PATH`: path to your CSV or folder glob
-     - `WINDOW_SIZE`: input history length in steps
-     - `HORIZONS`: list of future steps to predict (e.g., `[1,2,3]`)
+     - 'DATA_PATH': path to your CSV or folder glob
+     - 'WINDOW_SIZE': input history length in steps
+     - 'HORIZONS': list of future steps to predict (e.g., '[1,2,3]')
      - Training hyperparameters: batch size, epochs, learning rate
    - The notebook will:
      - Load and segment data
@@ -87,8 +87,8 @@ pip install -r requirements.txt
      - Visualize predictions
 
 3. **Compare models**:
-   - Use `model_comparison.ipynb` to:
-     - Evaluate CNN, LSTM, GRU (and optionally TCN)
+   - Use 'model_comparison.ipynb' to:
+     - Evaluate CNN, LSTM, GRU, TCN
      - Compare per-horizon MSE/MAE
      - Measure single-sample inference latency
 
@@ -96,8 +96,8 @@ pip install -r requirements.txt
 
 ## Configuration tips
 
-- Match `HORIZONS` to your sampling rate (steps → milliseconds).
-- Ensure segments are long enough for the chosen `WINDOW_SIZE`.
+- Match 'HORIZONS' to your sampling rate (steps -> milliseconds).
+- Ensure segments are long enough for the chosen 'WINDOW_SIZE'.
 - Normalize on training data only to avoid leakage.
 - Save normalization parameters alongside model checkpoints.
 
@@ -107,12 +107,11 @@ pip install -r requirements.txt
 
 Available in `models_python/`:
 
-- **CNN** (`cnn_model.py`): Fast, low-latency, good for short horizons.
-- **GRU** (`gru_model.py`): Efficient recurrent baseline.
-- **LSTM Small** (`lstm_small.py`): Lightweight temporal modeling.
-- **LSTM Large** (`lstm_large.py`): Higher capacity version.
-
-> You can add new architectures (e.g., `tcn_model.py`) for further comparison.
+- **CNN** ('cnn_model.py'): Fast, low-latency, good for short horizons.
+- **TCN** ('tnc_model.py'): Temporal Convolutional Network using dilated 1D convolutions.
+- **GRU** ('gru_model.py'): Efficient recurrent baseline.
+- **LSTM Small** ('lstm_small.py'): Lightweight temporal modeling.
+- **LSTM Large** ('lstm_large.py'): Higher capacity version.
 
 ---
 
@@ -129,7 +128,7 @@ The notebooks provide:
 
 ## Extending the project
 
-- Add uncertainty estimation with quantile (pinball) loss.
+- Add uncertainty estimation.
 - Fuse accelerometer + gyroscope channels in a single model.
 - Test on different devices to evaluate real-world VR performance.
 
