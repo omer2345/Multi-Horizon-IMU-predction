@@ -1,0 +1,39 @@
+{
+  "data_path": "MayaRec1.csv",
+  "tag": "acc",
+  "window_size": 30,
+  "horizons": [1, 2, 3],
+  "models": {
+    "LSTMSmall": {
+      "hidden_size": 32,
+      "epochs": 10,
+      "batch_size": 64
+    },
+    "LSTMLarge": {
+      "hidden_size": 64,
+      "num_layers": 2,
+      "epochs": 10,
+      "batch_size": 64
+    },
+    "GRUModel": {
+      "hidden_size": 32,
+      "epochs": 10,
+      "batch_size": 64
+    },
+    "CNNTimeSeries": {
+      "num_filters": 32,
+      "kernel_size": 3,
+      "epochs": 10,
+      "batch_size": 64
+    },
+    "TCNModel": {
+    "channels": 64,
+    "layers": 4,
+    "kernel_size": 3,
+    "dropout": 0.1,
+    "epochs": 10,
+    "batch_size": 64,
+    "lr": 0.001
+    }
+  }
+}
